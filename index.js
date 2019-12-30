@@ -4,16 +4,17 @@ const log4js = require("log4js");
 const resolve = path.resolve;
 const join = path.join;
 const extname = path.extname;
+const moment = require('moment');
 // log4js setting
 const logger = log4js.getLogger();
 logger.level = 'debug';
 
 //文件路径(可字符串，可数组):支持文件夹;
 let inputPath = [
-  "/Users/uustoboy/web/git/TxtReplace/public.css",
-  "/Users/uustoboy/web/git/TxtReplace/public1.css",
-  "/Users/uustoboy/web/git/TxtReplace/public2.css",
-  "/Users/uustoboy/web/git/TxtReplace/aa/"
+  // "/Users/uustoboy/web/git/TxtReplace/public.css",
+  // "/Users/uustoboy/web/git/TxtReplace/public1.css",
+  // "/Users/uustoboy/web/git/TxtReplace/public2.css",
+  // "/Users/uustoboy/web/git/TxtReplace/aa/"
 ];
 
 //let inputPath = "/Users/uustoboy/web/git/TxtReplace/public2.css";
@@ -23,8 +24,7 @@ let suffix = ['.css','.js'];
 
 //全局替换文本;
 let textReplace = {
-    'http://': '//',
-    'background': 'bg'
+    'http://': '//'
 };
 
 //替换文件;
@@ -91,27 +91,51 @@ const filterFile = (parameter)=>{
 
 //读取文件;
 const  readFile =  (filedir)=>{
-    let content = fs.readFileSync(filedir, "utf-8");
-    return content;
+    try {
+        let content = fs.readFileSync(filedir, "utf-8");
+        return content;
+    }catch(e){
+        logger.error(e); 
+        logger.error(`${filedir} 读取报错!!!`);  
+        writeLog(parameter,true);
+    }
 }
 
 //更改文件;
 const writeFile = (parameter,strNew,title) =>{
-    fs.writeFile(parameter, strNew, "utf8", err => {
-      if (err) logger.debug(err);
-        logger.debug(`${parameter} ${title}`);
-    });
+    try {
+        fs.writeFile(parameter, strNew, "utf8", err => {
+          if (err) logger.debug(err);
+            logger.debug(`${parameter} ${title}`);
+        });
+    }catch(e){
+        logger.error(e); 
+        logger.error(`${parameter} 写入报错!!!`);  
+        writeLog(parameter,true);
+    }
 }
 
 //写入日志;
-const writeLog = (filedirArr) => {
+const writeLog = (filedirName,fault) => {
     let fileTxt = join(__dirname, 'TxtReplace.txt');
     let content = isFileIn(fileTxt) ? readFile(fileTxt) : '';
-    let txt = content + "\n" + filedirArr ;
-    logger.info(`${filedirArr} 写入日志`);
-    fs.writeFileSync(fileTxt, txt, "utf8", err => {
+    let text = '';
+    if(fault){
+        text = content + "\n" + filedirName + " " + moment().format('YYYY/MM/DD HH:mm:s') +"-----------------";
+        logger.error(`${filedirName} 错误日志`);
+    }else{
+        text = content + "\n" + filedirName + " " + moment().format('YYYY/MM/DD HH:mm:s');
+        logger.info(`${filedirName} 写入日志`);
+    }
+   
+    fs.writeFileSync(fileTxt, text, "utf8", err => {
         if (err) logger.debug(err);
-        logger.info(`${fileTxt} 写入日志`);
+        if(fault){
+            logger.error(`${filedirName} 错误日志`);
+        }else{
+            logger.info(`${fileTxt} 写入日志`);
+        }
+        
     });
 }
 
@@ -161,4 +185,63 @@ String.prototype.replaceAll = function(s1, s2) {
 }
 
 // 执行方法;
-filterFile(inputPath);
+//filterFile(inputPath);
+
+
+/*------------------------------------------------------------*/
+//隐藏功能....
+
+//数组去重;
+let  unique =(arr)=>{
+    const res = new Map();
+    return arr.filter((a) => !res.has(a) && res.set(a, 1))
+}
+
+//读取文本路径;
+let TextDirectory = 'E:/git/TxtReplace/123.txt';
+//从txt文件中读取src,href路径写入TxtReplaceOriginal.txt;
+const getHttpsText = (TextDirectory)=>{
+    let content = readFile(TextDirectory);
+    
+    let reg = /href=['"]([^"]*)['"]/gi;
+    let arr=[], match;
+
+    let reg2 = /src=['"]([^"]*)['"]/gi;
+    let arr2=[], match2;
+
+    while(match2=reg2.exec(content.toString())){
+        arr2.push(match2[1])
+    };
+
+    while(match=reg.exec(content.toString())){
+         arr.push(match[1])
+    };
+
+    let originalArr = [];
+    originalArr=originalArr.concat(unique(arr),unique(arr2));
+    
+    let fileTxt = join(__dirname, 'TxtReplaceOriginal.txt');
+    let contentTxt = isFileIn(fileTxt) ? readFile(fileTxt) : '';
+    let text = contentTxt + "\n" + originalArr.join("\n");
+    fs.writeFile(fileTxt, text, "utf8", err => {
+        if (err) logger.debug(err);
+        logger.info(`${fileTxt} 写入日志`);
+    });
+}
+//设置读取txt文件转化成inputPath的数组;
+let getHttpsTextPath = join(__dirname, 'TxtReplaceOriginal.txt');
+const setHttpsArr = ()=>{
+    let content = readFile(getHttpsTextPath);
+    let arr = content.toString().split("\n");
+    filterFile(arr);
+}
+
+//读取txt文件找出可替换的路径;
+// getHttpsText(TextDirectory);
+
+//读取txt文件替换文件;
+//setHttpsArr();
+
+
+
+
