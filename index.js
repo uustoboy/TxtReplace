@@ -10,14 +10,14 @@ const logger = log4js.getLogger();
 logger.level = 'debug';
 
 //文件路径(可字符串，可数组):支持文件夹;
-let inputPath = [
+// let inputPath = [
   // "/Users/uustoboy/web/git/TxtReplace/public.css",
   // "/Users/uustoboy/web/git/TxtReplace/public1.css",
   // "/Users/uustoboy/web/git/TxtReplace/public2.css",
   // "/Users/uustoboy/web/git/TxtReplace/aa/"
-];
+// ];
 
-//let inputPath = "/Users/uustoboy/web/git/TxtReplace/public2.css";
+let inputPath = "E:/testDemo/c/css.css";
 
 //限定文件后缀;
 let suffix = ['.css','.js'];
@@ -185,7 +185,7 @@ String.prototype.replaceAll = function(s1, s2) {
 }
 
 // 执行方法;
-//filterFile(inputPath);
+filterFile(inputPath);
 
 
 /*------------------------------------------------------------*/
@@ -240,7 +240,7 @@ const setHttpsArr = ()=>{
 // getHttpsText(TextDirectory);
 
 //读取txt文件替换文件;
-//setHttpsArr();
+// setHttpsArr();
 
 
 
